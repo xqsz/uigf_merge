@@ -21,7 +21,7 @@ def add_hours(time_str, hours):
 def main():
     a_path = "Snap Hutao UIGF.json"
     b_path = "weapon_avatar.json"
-    out_path = "merge_uigf_uigf3.0.json"
+    out_path = "uigf_merged_uigf3.0.json"
 
     # 加载 JSON
     A = load_json(a_path)
