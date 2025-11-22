@@ -1,7 +1,7 @@
 import json
+from datetime import datetime, timedelta
 
 def main():
-    # 输入文件名
     uigf_file = "Snap Hutao UIGF.json"
     item_file = "weapon_avatar.json"
     output_file = "uigf_merged.json"
@@ -30,26 +30,42 @@ def main():
         "id"
     ]
 
-    # 遍历所有记录
+    # 遍历所有 uid 和记录
     for uid_block in uigf["hk4e"]:
+
+        # -----------▼ 时区修改（0 → 8） ▼--------------
+        if "timezone" in uid_block and uid_block["timezone"] == 0:
+            uid_block["timezone"] = 8
+        # ------------------------------------------------
+
         for record in uid_block["list"]:
             item_id = record.get("item_id")
             extra = item_dict.get(item_id, {})
 
-            # 合并但保持主文件字段优先
+            # 合并主文件字段优先
             merged = {**extra, **record}
 
-            # 按指定字段顺序重建
+            # -----------▼ time 字段 +8 小时 ▼--------------
+            if "time" in merged:
+                try:
+                    dt = datetime.strptime(merged["time"], "%Y-%m-%d %H:%M:%S")
+                    dt += timedelta(hours=8)
+                    merged["time"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+                except Exception:
+                    pass  # 如果格式异常则跳过
+            # ------------------------------------------------
+
+            # -----------▼ 字段排序 ▼--------------
             sorted_record = {k: merged.get(k, None) for k in field_order}
 
-            # 把剩余字段追加（如果你不需要可以删掉）
+            # 追加剩余字段（如果不需要可删掉）
             for k, v in merged.items():
                 if k not in field_order:
                     sorted_record[k] = v
 
-            # 覆盖原记录
             record.clear()
             record.update(sorted_record)
+            # ---------------------------------------
 
     # 输出文件
     with open(output_file, "w", encoding="utf-8") as f:
